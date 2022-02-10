@@ -6,3 +6,6 @@ command_2:
 
 command_3:
 	echo "command_3" > text.txt
+
+command_with_arg:
+	echo "command_with_arg:" $(arg) > text.txt
