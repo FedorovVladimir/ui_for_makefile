@@ -8,7 +8,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"os"
 	"os/exec"
-	"time"
 )
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
@@ -92,7 +91,6 @@ func (m *model) View() string {
 }
 
 func (m *model) runCommand(command string) {
-	time.Sleep(time.Second)
 	c := exec.Command("make", command)
 	if err := c.Run(); err != nil {
 		fmt.Println("Error: ", err)
