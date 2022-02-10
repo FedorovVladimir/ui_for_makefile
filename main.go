@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"os"
 	"os/exec"
+	"time"
 )
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
@@ -34,7 +35,7 @@ type model struct {
 }
 
 func (m *model) Init() tea.Cmd {
-	return m.spinner.Tick
+	return nil
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -47,6 +48,7 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			item, _ := m.lists[m.page].SelectedItem().(item)
 			m.loading = true
 			go m.runCommand(item.command)
+			return m, m.spinner.Tick
 		case "right":
 			m.page++
 			if m.page == len(m.lists) {
@@ -68,9 +70,11 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 	default:
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
+		if m.loading {
+			var cmd tea.Cmd
+			m.spinner, cmd = m.spinner.Update(msg)
+			return m, cmd
+		}
 	}
 
 	var cmd tea.Cmd
@@ -88,6 +92,7 @@ func (m *model) View() string {
 }
 
 func (m *model) runCommand(command string) {
+	time.Sleep(time.Second)
 	c := exec.Command("make", command)
 	if err := c.Run(); err != nil {
 		fmt.Println("Error: ", err)
