@@ -191,7 +191,7 @@ func main() {
 		item{title: "item 3", desc: "description 3", command: command{name: "command_3"}},
 	}
 	m.lists = append(m.lists, list.New(itemsTab2, list.NewDefaultDelegate(), 0, 0))
-	m.lists[0].Title = "Tab 2"
+	m.lists[1].Title = "Tab 2"
 
 	itemsTab3 := []list.Item{
 		item{title: "item 1", desc: "description 1", command: command{name: "command_1"}},
@@ -199,7 +199,7 @@ func main() {
 		item{title: "item 3", desc: "description 3", command: command{name: "command_3"}},
 	}
 	m.lists = append(m.lists, list.New(itemsTab3, list.NewDefaultDelegate(), 0, 0))
-	m.lists[0].Title = "Tab 3"
+	m.lists[2].Title = "Tab 3"
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
