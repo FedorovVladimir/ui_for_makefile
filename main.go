@@ -146,7 +146,7 @@ func (m *model) ViewMenu() string {
 func (m *model) runCommand() {
 	var c *exec.Cmd
 	if m.currentCommand.hasArgs {
-		c = exec.Command("make", m.currentCommand.name, fmt.Sprintf(`arg="%s"`, m.textInput.Value()))
+		c = exec.Command("make", m.currentCommand.name, m.textInput.Value())
 		m.textInput.SetValue("")
 	} else {
 		c = exec.Command("make", m.currentCommand.name)
