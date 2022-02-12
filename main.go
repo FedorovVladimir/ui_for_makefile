@@ -5,28 +5,12 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"learn_console_ui/ui"
 	"os"
 	"os/exec"
 )
 
-const (
-	stateMenu = iota
-	stateRunCommand
-)
-
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
-
-type item struct {
-	title   string
-	desc    string
-	command command
-}
-
-func (i item) Title() string { return i.title }
-
-func (i item) Description() string { return i.desc }
-
-func (i item) FilterValue() string { return i.title }
 
 type model struct {
 	width  int
@@ -36,11 +20,10 @@ type model struct {
 	page  int
 	lists []list.Model
 
-	currentCommand command
+	currentCommand *ui.Command
 }
 
 func (m *model) Init() tea.Cmd {
-	m.state = stateMenu
 	return nil
 }
 
@@ -51,11 +34,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			if m.state == stateMenu {
-				m.currentCommand = m.lists[m.page].SelectedItem().(item).command
-				m.runCommand()
-				return m, tea.Quit
-			}
+			item := m.lists[m.page].SelectedItem()
+			m.currentCommand = item.(*ui.Command)
+			return m, tea.Quit
 		case "right":
 			m.page++
 			if m.page == len(m.lists) {
@@ -84,12 +65,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m *model) View() string {
-	if m.state == stateMenu {
-		s := docStyle.Render(m.lists[m.page].View())
-		s += m.ViewMenu()
-		return s
-	}
-	return "111"
+	s := docStyle.Render(m.lists[m.page].View())
+	s += m.ViewMenu()
+	return s
 }
 
 func (m *model) ViewMenu() string {
@@ -105,45 +83,13 @@ func (m *model) ViewMenu() string {
 	return s
 }
 
-func (m *model) runCommand() {
-	//fmt.Println("command in")
-	//defer func() {
-	//	fmt.Println("command out")
-	//}()
-	//cmd := exec.Command("make", m.currentCommand.name)
-	//cmd.Stdin = os.Stdin
-	//cmd.Stdout = os.Stdout
-	//cmd.Stderr = os.Stderr
-	//p = tea.NewProgram(m, tea.WithOutput(nil), tea.WithInput(nil))
-	//err := cmd.Run()
-	//if err != nil {
-	//	panic(err)
-	//}
-	//fmt.Println("tab enter for out")
-}
-
-type command struct {
-	name    string
-	hasArgs bool
-	text    string
-}
-
 func main() {
+	commands := ui.ScanCommands()
+
 	m := &model{lists: []list.Model{}}
-
-	itemsTab1 := []list.Item{
-		item{title: "Макс", desc: "Вперед к победе", command: command{name: "command_1"}},
-		item{title: "item 2", desc: "description 2", command: command{name: "command_1"}},
+	for k, v := range commands {
+		m.lists = append(m.lists, ui.ConvertListCommandToListModel(k, v))
 	}
-	m.lists = append(m.lists, list.New(itemsTab1, list.NewDefaultDelegate(), 0, 0))
-	m.lists[0].Title = "Tab 1"
-
-	itemsTab2 := []list.Item{
-		item{title: "item 1", desc: "description 1", command: command{name: "command_1"}},
-		item{title: "item 2", desc: "description 2", command: command{name: "command_1"}},
-	}
-	m.lists = append(m.lists, list.New(itemsTab2, list.NewDefaultDelegate(), 0, 0))
-	m.lists[1].Title = "Tab 2"
 
 	for {
 		p := tea.NewProgram(m, tea.WithAltScreen())
@@ -151,14 +97,15 @@ func main() {
 			fmt.Println("Error running program:", err)
 			os.Exit(1)
 		}
-		cmd := exec.Command("make", "command_1")
+
+		cmd := exec.Command("make", m.currentCommand.Name)
+		fmt.Println(cmd)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
 		cmd.Stderr = os.Stderr
-		p = tea.NewProgram(m, tea.WithOutput(nil), tea.WithInput(nil))
-		err := cmd.Run()
-		if err != nil {
-			panic(err)
+		if err := cmd.Run(); err != nil {
+			fmt.Println("Error running command:", err)
+			os.Exit(2)
 		}
 	}
 }
