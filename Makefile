@@ -1,18 +1,26 @@
-ifeq (command_with_arg,$(firstword $(MAKECMDGOALS)))
-  arg := $(wordlist 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
-  $(eval $(arg):;@:)
-endif
-
+# command_1 description 1
 command_1:
-	echo "command_1" > text.txt
+	@./run.sh
 
-# command 1 description
+# command_2 description 2
 command_2:
 	echo "command_2" > text.txt
 
+# command_3 description 3
 command_3:
 	echo "command_3" > text.txt
 
-.PHONY: command_with_arg
-command_with_arg:
+# command_with_arg_1 description with args
+# arg: input text
+command_with_arg_1:
+	echo "command_with_arg:" $(arg) > text.txt
+
+# command_with_arg_2 description with args
+# arg: arr=["1", "2", "3"]
+command_with_arg_2:
+	echo "command_with_arg:" $(arg) > text.txt
+
+# command_with_arg_3 description with args
+# arg: arrFrom=command_3
+command_with_arg_3:
 	echo "command_with_arg:" $(arg) > text.txt

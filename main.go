@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/spinner"
-	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"os"
@@ -13,8 +11,7 @@ import (
 
 const (
 	stateMenu = iota
-	stateLoading
-	stateInputText
+	stateRunCommand
 )
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
@@ -39,41 +36,25 @@ type model struct {
 	page  int
 	lists []list.Model
 
-	spinner   spinner.Model
-	textInput textinput.Model
-
 	currentCommand command
 }
 
 func (m *model) Init() tea.Cmd {
+	m.state = stateMenu
 	return nil
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		if m.state == stateInputText {
-			switch msg.Type {
-			case tea.KeyEnter:
-				m.state = stateLoading
-				go m.runCommand()
-				return m, m.spinner.Tick
-			case tea.KeyCtrlC, tea.KeyEsc:
-				return m, tea.Quit
-			}
-		}
 		switch msg.String() {
 		case "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			m.currentCommand = m.lists[m.page].SelectedItem().(item).command
-			if m.currentCommand.hasArgs {
-				m.state = stateInputText
-				return m, textinput.Blink
-			} else {
-				m.state = stateLoading
-				go m.runCommand()
-				return m, m.spinner.Tick
+			if m.state == stateMenu {
+				m.currentCommand = m.lists[m.page].SelectedItem().(item).command
+				m.runCommand()
+				return m, tea.Quit
 			}
 		case "right":
 			m.page++
@@ -97,37 +78,18 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.height = msg.Height
 	}
 
-	if m.state == stateLoading {
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
-	}
-	if m.state == stateInputText {
-		var cmd tea.Cmd
-		m.textInput, cmd = m.textInput.Update(msg)
-		return m, cmd
-	}
-
 	var cmd tea.Cmd
 	m.lists[m.page], cmd = m.lists[m.page].Update(msg)
 	return m, cmd
 }
 
 func (m *model) View() string {
-	if m.state == stateLoading {
-		return fmt.Sprintf("\n\n   %s Loading...\n\n", m.spinner.View())
+	if m.state == stateMenu {
+		s := docStyle.Render(m.lists[m.page].View())
+		s += m.ViewMenu()
+		return s
 	}
-	if m.state == stateInputText {
-		return fmt.Sprintf(
-			"%s\n\n%s\n\n%s",
-			m.currentCommand.text,
-			m.textInput.View(),
-			"(esc to quit)",
-		) + "\n"
-	}
-	s := docStyle.Render(m.lists[m.page].View())
-	s += m.ViewMenu()
-	return s
+	return "111"
 }
 
 func (m *model) ViewMenu() string {
@@ -144,18 +106,20 @@ func (m *model) ViewMenu() string {
 }
 
 func (m *model) runCommand() {
-	var c *exec.Cmd
-	if m.currentCommand.hasArgs {
-		c = exec.Command("make", m.currentCommand.name, m.textInput.Value())
-		m.textInput.SetValue("")
-	} else {
-		c = exec.Command("make", m.currentCommand.name)
-	}
-	if err := c.Run(); err != nil {
-		fmt.Println("Error: ", err)
-		panic(err)
-	}
-	m.state = stateMenu
+	//fmt.Println("command in")
+	//defer func() {
+	//	fmt.Println("command out")
+	//}()
+	//cmd := exec.Command("make", m.currentCommand.name)
+	//cmd.Stdin = os.Stdin
+	//cmd.Stdout = os.Stdout
+	//cmd.Stderr = os.Stderr
+	//p = tea.NewProgram(m, tea.WithOutput(nil), tea.WithInput(nil))
+	//err := cmd.Run()
+	//if err != nil {
+	//	panic(err)
+	//}
+	//fmt.Println("tab enter for out")
 }
 
 type command struct {
@@ -165,46 +129,36 @@ type command struct {
 }
 
 func main() {
-	s := spinner.New()
-	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-
-	ti := textinput.New()
-	ti.Placeholder = "you text"
-	ti.Focus()
-	ti.CharLimit = 20
-	ti.Width = 20
-
-	m := &model{spinner: s, textInput: ti, lists: []list.Model{}}
+	m := &model{lists: []list.Model{}}
 
 	itemsTab1 := []list.Item{
-		item{title: "item 1", desc: "description 1", command: command{name: "command_with_arg", hasArgs: true, text: "Input text for file:"}},
-		item{title: "item 2", desc: "description 2", command: command{name: "command_2"}},
-		item{title: "item 3", desc: "description 3", command: command{name: "command_3"}},
+		item{title: "Макс", desc: "Вперед к победе", command: command{name: "command_1"}},
+		item{title: "item 2", desc: "description 2", command: command{name: "command_1"}},
 	}
 	m.lists = append(m.lists, list.New(itemsTab1, list.NewDefaultDelegate(), 0, 0))
 	m.lists[0].Title = "Tab 1"
 
 	itemsTab2 := []list.Item{
 		item{title: "item 1", desc: "description 1", command: command{name: "command_1"}},
-		item{title: "item 2", desc: "description 2", command: command{name: "command_2"}},
-		item{title: "item 3", desc: "description 3", command: command{name: "command_3"}},
+		item{title: "item 2", desc: "description 2", command: command{name: "command_1"}},
 	}
 	m.lists = append(m.lists, list.New(itemsTab2, list.NewDefaultDelegate(), 0, 0))
 	m.lists[1].Title = "Tab 2"
 
-	itemsTab3 := []list.Item{
-		item{title: "item 1", desc: "description 1", command: command{name: "command_1"}},
-		item{title: "item 2", desc: "description 2", command: command{name: "command_2"}},
-		item{title: "item 3", desc: "description 3", command: command{name: "command_3"}},
-	}
-	m.lists = append(m.lists, list.New(itemsTab3, list.NewDefaultDelegate(), 0, 0))
-	m.lists[2].Title = "Tab 3"
-
-	p := tea.NewProgram(m, tea.WithAltScreen())
-
-	if err := p.Start(); err != nil {
-		fmt.Println("Error running program:", err)
-		os.Exit(1)
+	for {
+		p := tea.NewProgram(m, tea.WithAltScreen())
+		if err := p.Start(); err != nil {
+			fmt.Println("Error running program:", err)
+			os.Exit(1)
+		}
+		cmd := exec.Command("make", "command_1")
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		p = tea.NewProgram(m, tea.WithOutput(nil), tea.WithInput(nil))
+		err := cmd.Run()
+		if err != nil {
+			panic(err)
+		}
 	}
 }
