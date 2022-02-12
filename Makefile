@@ -1,28 +1,22 @@
-## group: tab 1
+## group: Простые
 
-## command_1: description 1
+## команда с выбором
+## спрашивает уверены ли вы в своем выборе
 command_1:
 	@./run.sh
 
-## command_2: description 2
+## вывод в файл
 command_2:
 	echo "command_2" > text.txt
 
-## command_with_arg_1: description with args
-## arg: input text
+## group: С параметрами
+
+## вывод текста в файл
 command_with_arg_1:
 	echo "command_with_arg:" $(arg) > text.txt
 
-## group: tab 2
-
-## command_with_arg_2: description with args
-## arg: arr=["1", "2", "3"]
 command_with_arg_2:
 	echo "command_with_arg:" $(arg) > text.txt
 
-## group: tab 3
-
-## command_with_arg_3: description with args
-## arg: arrFrom=command_3
 command_with_arg_3:
 	echo "command_with_arg:" $(arg) > text.txt

@@ -1,11 +1,48 @@
 package ui
 
-import "github.com/charmbracelet/bubbles/list"
+import (
+	"bufio"
+	"github.com/charmbracelet/bubbles/list"
+	"os"
+	"strings"
+)
 
-func ScanCommands() map[string][]*Command {
+func ScanCommands() (map[string][]*Command, error) {
 	c := map[string][]*Command{}
-	c["Общие"] = []*Command{NewCommand("command_1", "command_1 description")}
-	return c
+	tabName := "default"
+	description := ""
+
+	file, err := os.Open("Makefile")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "## group: ") {
+			tabName = strings.TrimPrefix(line, "## group: ")
+			continue
+		}
+		if strings.HasPrefix(line, "## ") {
+			if description == "" {
+				description = strings.TrimPrefix(line, "## ")
+				continue
+			}
+		}
+		if strings.HasSuffix(line, ":") {
+			commandName := strings.TrimSuffix(line, ":")
+			if description == "" {
+				description = commandName
+			}
+			c[tabName] = append(c[tabName], NewCommand(commandName, description))
+			description = ""
+			continue
+		}
+	}
+
+	return c, nil
 }
 
 func ConvertListCommandToListModel(title string, commands []*Command) list.Model {

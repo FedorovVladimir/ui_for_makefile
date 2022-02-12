@@ -84,8 +84,10 @@ func (m *model) ViewMenu() string {
 }
 
 func main() {
-	commands := ui.ScanCommands()
-
+	commands, err := ui.ScanCommands()
+	if err != nil {
+		panic(err)
+	}
 	m := &model{lists: []list.Model{}}
 	for k, v := range commands {
 		m.lists = append(m.lists, ui.ConvertListCommandToListModel(k, v))
