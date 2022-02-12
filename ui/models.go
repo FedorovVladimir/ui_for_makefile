@@ -3,10 +3,15 @@ package ui
 type Command struct {
 	Name        string
 	description string
+	Args        []arg
 }
 
-func NewCommand(name string, description string) *Command {
-	return &Command{Name: name, description: description}
+func NewCommand(name string, description string, opts ...CommandOptional) *Command {
+	c := &Command{Name: name, description: description}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 func (c Command) Title() string {
@@ -19,4 +24,24 @@ func (c Command) Description() string {
 
 func (c Command) FilterValue() string {
 	return c.Name + " " + c.description
+}
+
+type arg struct {
+	name        string
+	description string
+	value       string
+}
+
+func (a *arg) String() string {
+	return a.name + "=\"" + a.value + "\""
+}
+
+type CommandOptional func(command *Command)
+
+func WithArgs(args []arg) CommandOptional {
+	return func(command *Command) {
+		targetArgs := make([]arg, len(args))
+		copy(targetArgs, args)
+		command.Args = targetArgs
+	}
 }

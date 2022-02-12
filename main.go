@@ -100,7 +100,14 @@ func main() {
 			os.Exit(1)
 		}
 
-		cmd := exec.Command("make", m.currentCommand.Name)
+		var cmd *exec.Cmd
+		if len(m.currentCommand.Args) == 0 {
+			cmd = exec.Command("make", m.currentCommand.Name)
+		}
+		if len(m.currentCommand.Args) == 1 {
+			arg := m.currentCommand.Args[0].String()
+			cmd = exec.Command("make", m.currentCommand.Name, arg)
+		}
 		fmt.Println(cmd)
 		cmd.Stdin = os.Stdin
 		cmd.Stdout = os.Stdout
