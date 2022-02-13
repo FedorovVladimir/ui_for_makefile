@@ -43,7 +43,7 @@ func ScanCommands() (map[string][]*Command, error) {
 			args = append(args, arg{
 				name:        argName,
 				description: argDescription,
-				value:       "",
+				Value:       "",
 			})
 			continue
 		}
@@ -61,7 +61,7 @@ func ScanCommands() (map[string][]*Command, error) {
 			if len(args) > 0 {
 				if len(values) > 0 {
 					for _, value := range values {
-						args[0].value = value
+						args[0].Value = value
 						c[tabName] = append(c[tabName], NewCommand(commandName, description+" "+value, WithArgs(args)))
 					}
 				} else {

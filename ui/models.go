@@ -29,11 +29,11 @@ func (c Command) FilterValue() string {
 type arg struct {
 	name        string
 	description string
-	value       string
+	Value       string
 }
 
 func (a *arg) String() string {
-	return a.name + "=\"" + a.value + "\""
+	return a.name + "=\"" + a.Value + "\""
 }
 
 type CommandOptional func(command *Command)

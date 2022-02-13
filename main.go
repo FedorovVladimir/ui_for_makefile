@@ -93,28 +93,34 @@ func main() {
 		m.lists = append(m.lists, ui.ConvertListCommandToListModel(k, v))
 	}
 
-	for {
-		p := tea.NewProgram(m, tea.WithAltScreen())
-		if err := p.Start(); err != nil {
-			fmt.Println("Error running program:", err)
-			os.Exit(1)
-		}
+	//for {
+	p := tea.NewProgram(m, tea.WithAltScreen())
+	if err := p.Start(); err != nil {
+		fmt.Println("Error running program:", err)
+		os.Exit(1)
+	}
 
-		var cmd *exec.Cmd
-		if len(m.currentCommand.Args) == 0 {
-			cmd = exec.Command("make", m.currentCommand.Name)
-		}
-		if len(m.currentCommand.Args) == 1 {
-			arg := m.currentCommand.Args[0].String()
-			cmd = exec.Command("make", m.currentCommand.Name, arg)
-		}
-		fmt.Println(cmd)
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Println("Error running command:", err)
-			os.Exit(2)
+	for i, arg := range m.currentCommand.Args {
+		if arg.Value == "" {
+			m.currentCommand.Args[i].Value = "asd"
 		}
 	}
+
+	var cmd *exec.Cmd
+	if len(m.currentCommand.Args) == 0 {
+		cmd = exec.Command("make", m.currentCommand.Name)
+	}
+	if len(m.currentCommand.Args) == 1 {
+		arg := m.currentCommand.Args[0].String()
+		cmd = exec.Command("make", m.currentCommand.Name, arg)
+	}
+	fmt.Println(cmd)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Println("Error running command:", err)
+		os.Exit(2)
+	}
+	//}
 }
