@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/FedorovVladimir/ui_for_makefile/ui"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"learn_console_ui/ui"
 	"os"
 	"os/exec"
 )
